@@ -1,5 +1,6 @@
 import Head from 'next/head';
 import styles from '../styles/Home.module.css';
+import ManualHeader from '../components/ManualHeader';
 
 export default function Home() {
 	return (
@@ -12,6 +13,7 @@ export default function Home() {
 
 			<main className={styles.main}>
 				<h1>Hi.</h1>
+				<ManualHeader />
 			</main>
 
 			<footer className={styles.footer}></footer>
