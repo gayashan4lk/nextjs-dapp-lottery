@@ -16,6 +16,8 @@ export default function LotteryEntrance() {
 
 	const raffleAddress = contractAddresses[chainId][0];
 	const [entranceFee, setEntranceFee] = useState('0');
+	const [numPlayers, setNumPlayers] = useState('0');
+	const [recentWinner, setRecentWinner] = useState('0');
 
 	const dispatch = useNotification();
 
@@ -28,20 +30,7 @@ export default function LotteryEntrance() {
 		params: {},
 	});
 
-	useEffect(() => {
-		if (isWeb3Enabled) {
-			async function updateUI() {
-				const entranceFeeFromCall = await getEntranceFee();
-				setEntranceFee(entranceFeeFromCall.toString());
-				console.log(entranceFee);
-			}
-			updateUI();
-		}
-	}, [isWeb3Enabled]);
-
-	// console.log(entranceFee);
-
-	const { runContractFunction: enterLottery } = useWeb3Contract({
+	const { runContractFunction: enterRaffle } = useWeb3Contract({
 		abi: abi,
 		contractAddress: raffleAddress,
 		functionName: 'enterRaffle',
@@ -49,9 +38,45 @@ export default function LotteryEntrance() {
 		msgValue: entranceFee,
 	});
 
+	const { runContractFunction: getNumberOfPlayers } = useWeb3Contract({
+		abi: abi,
+		contractAddress: raffleAddress,
+		functionName: 'getNumberOfPlayers',
+		params: {},
+	});
+
+	const { runContractFunction: getRecentWinner } = useWeb3Contract({
+		abi: abi,
+		contractAddress: raffleAddress,
+		functionName: 'getRecentWinner',
+		params: {},
+	});
+
+	async function updateUI() {
+		const entranceFeeFromCall = await getEntranceFee();
+		const numPlayersFromCall = await getNumberOfPlayers();
+		const recentWinnerFromCall = await getRecentWinner();
+		setEntranceFee(entranceFeeFromCall.toString());
+		setNumPlayers(numPlayersFromCall.toString());
+		setRecentWinner(recentWinnerFromCall.toString());
+	}
+
+	useEffect(() => {
+		if (isWeb3Enabled) {
+			updateUI();
+		}
+	}, [isWeb3Enabled]);
+
+	useEffect(() => {
+		updateUI();
+	}, [recentWinner]);
+
+	// console.log(entranceFee);
+
 	const handleSuccess = async (tx) => {
 		await tx.wait(1);
 		handleNewNotification(tx);
+		updateUI();
 	};
 
 	const handleNewNotification = () => {
@@ -70,7 +95,7 @@ export default function LotteryEntrance() {
 				<div>
 					<button
 						onClick={async () => {
-							await enterLottery({
+							await enterRaffle({
 								onSuccess: handleSuccess,
 								onError: (error) => console.log(error),
 							});
@@ -78,7 +103,12 @@ export default function LotteryEntrance() {
 					>
 						Enter Raffle
 					</button>
-					Entrance Fee : {ethers.utils.formatUnits(entranceFee, 'ether')} ETH
+					<hr />
+					Entrance Fee: {ethers.utils.formatUnits(entranceFee, 'ether')} ETH
+					<hr />
+					Number of Players: {numPlayers}
+					<hr />
+					RecentWinner: {recentWinner}
 				</div>
 			) : (
 				<div>No Raffle address detected!</div>
