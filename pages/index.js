@@ -19,7 +19,6 @@ export default function Home() {
 			</Head>
 
 			<main className={styles.main}>
-				<h1>Hi.</h1>
 				{/* <ManualHeader /> */}
 				<Header />
 				{isWeb3Enabled ? (
